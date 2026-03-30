@@ -58,25 +58,23 @@ private:
     }
 
 public:
-    LinkedList() : head(nullptr), tail(nullptr), size(0)
-    {
-    }
+    LinkedList() : head(nullptr), tail(nullptr), size(0) {}
 
-    LinkedList(const T* items, int count) : head(nullptr), tail(nullptr), size(0)
+    LinkedList(const T* array, int count) : head(nullptr), tail(nullptr), size(0)
     {
         if (count < 0)
         {
             throw std::out_of_range("Negative size");
         }
 
-        if (items == nullptr && count > 0)
+        if (array == nullptr && count > 0)
         {
             throw std::invalid_argument("Source array is null");
         }
 
         for (int i = 0; i < count; i++)
         {
-            Append(items[i]);
+            Append(array[i]);
         }
     }
 
@@ -169,7 +167,7 @@ public:
         size++;
     }
 
-    void InsertAt(const T& item, int index)
+    void InsertAt(int index, const T& item)
     {
         if (index < 0 || index > size)
         {
@@ -194,33 +192,33 @@ public:
         size++;
     }
 
-    LinkedList<T>* GetSubList(int startIndex, int endIndex) const
+    LinkedList<T> GetSubList(int startIndex, int endIndex) const
     {
         if (startIndex < 0 || endIndex < 0 || startIndex >= size || endIndex >= size || startIndex > endIndex)
         {
             throw std::out_of_range("Index out of range");
         }
 
-        LinkedList<T>* result = new LinkedList<T>();
+        LinkedList<T> result;
         Node<T>* current = GetNode(startIndex);
 
         for (int i = startIndex; i <= endIndex; i++)
         {
-            result->Append(current->data);
+            result.Append(current->data);
             current = current->next;
         }
 
         return result;
     }
 
-    LinkedList<T>* Concat(const LinkedList<T>& other) const
+    LinkedList<T> Concat(const LinkedList<T>& other) const
     {
-        LinkedList<T>* result = new LinkedList<T>(*this);
+        LinkedList<T> result(*this);
         Node<T>* current = other.head;
 
         while (current != nullptr)
         {
-            result->Append(current->data);
+            result.Append(current->data);
             current = current->next;
         }
 

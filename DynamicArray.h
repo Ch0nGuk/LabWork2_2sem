@@ -21,9 +21,7 @@ private:
     }
 
 public:
-    DynamicArray() : data(nullptr), size(0), capacity(0)
-    {
-    }
+    DynamicArray() : data(nullptr), size(0), capacity(0) {}
 
     explicit DynamicArray(int size) : data(nullptr), size(size), capacity(size)
     {
