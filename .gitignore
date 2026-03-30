@@ -5,9 +5,17 @@
 *.exe
 
 *.o
+*.obj
+*.pdb
+*.ilk
+*.idb
 
 # (Опционально) Игнорировать временные папки компиляторов (если есть)
 bin/
 obj/
 
 program
+compile_check
+compile_check.*
+build_out.txt
+lab2_text.txt
