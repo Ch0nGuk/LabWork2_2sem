@@ -3,6 +3,7 @@
 
 #include <stdexcept>
 #include <utility>
+#include "IEnumerator.h"
 
 template <typename T>
 class LinkedList
@@ -56,6 +57,29 @@ private:
 
         return current;
     }
+
+    class ListEnumerator : public IEnumerator<T>
+    {
+    protected:
+        const Node<T>* current;
+        const Node<T>* next;
+    
+    public:
+        ListEnumerator(const Node<T>* head) : current(nullptr), next(head) {}
+
+        bool MoveNext() override
+        {
+            if (next == nullptr) return false;
+            this->current = this->next;
+            this->next = this->next->next;
+            return true;
+        }
+
+        const T& Current() const override
+        {
+            return current->data;
+        }
+    };
 
 public:
     LinkedList() : head(nullptr), tail(nullptr), size(0) {}
@@ -192,17 +216,17 @@ public:
         size++;
     }
 
-    LinkedList<T> GetSubList(int startIndex, int endIndex) const
+    LinkedList<T> GetSubList(int start_index, int end_index) const
     {
-        if (startIndex < 0 || endIndex < 0 || startIndex >= size || endIndex >= size || startIndex > endIndex)
+        if (start_index < 0 || end_index < 0 || start_index >= size || end_index >= size || start_index > end_index)
         {
             throw std::out_of_range("Index out of range");
         }
 
         LinkedList<T> result;
-        Node<T>* current = GetNode(startIndex);
+        Node<T>* current = GetNode(start_index);
 
-        for (int i = startIndex; i <= endIndex; i++)
+        for (int i = start_index; i <= end_index; i++)
         {
             result.Append(current->data);
             current = current->next;
@@ -223,6 +247,11 @@ public:
         }
 
         return result;
+    }
+
+    IEnumerator<T>* GetEnumerator() const
+    {
+        return new ListEnumerator(head);
     }
 };
 

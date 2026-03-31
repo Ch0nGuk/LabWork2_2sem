@@ -1,6 +1,8 @@
 #ifndef SEQUENCE_H
 #define SEQUENCE_H
 
+#include "IEnumerator.h"
+
 template <typename T>
 class Sequence
 {
@@ -17,25 +19,28 @@ public:
     virtual Sequence<T>* InsertAt(int index, const T& item) = 0;
     virtual Sequence<T>* GetSubsequence(int start_index, int end_index) const = 0;
     virtual Sequence<T>* Concat(const Sequence<T>& other) const = 0;
-    virtual Sequence<T>* Slice(int startIndex, int count, const Sequence<T>& replacement) const = 0;
-    virtual Sequence<Sequence<T>*>* Split(const T& separator) const = 0;
+    virtual Sequence<T>* Slice(int start_index, int count, const Sequence<T>& replacement) const = 0;
+    virtual IEnumerator<T>* GetEnumerator() const = 0;
 
     virtual Sequence<T>* Instance() = 0;
 
     virtual Sequence<T>* Map(T (*func)(T)) const = 0;
     virtual Sequence<T>* Where(bool (*predicate)(T)) const = 0;
-    T Reduce(T (*func)(T, T), T startValue) const
+    T Reduce(T (*func)(T, T), T start_value) const
     {
-        T result = startValue;
-        for (int index = 0; index < GetLength(); index++)
+        T result = start_value;
+        IEnumerator<T>* enumerator = GetEnumerator();
+
+        while (enumerator->MoveNext())
         {
-            result = func(result, Get(index));
+            result = func(result, enumerator->Current());
         }
+
+        delete enumerator;
         return result;
     }
 
-
-
+    
 protected:
     virtual Sequence<T>* AppendInternal(const T& item) = 0;
     virtual Sequence<T>* PrependInternal(const T& item) = 0;

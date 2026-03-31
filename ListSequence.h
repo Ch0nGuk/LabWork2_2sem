@@ -3,6 +3,7 @@
 
 #include "Sequence.h"
 #include "LinkedList.h"
+#include "IEnumerator.h"
 
 template <typename T> 
 class ListSequence : public Sequence<T>
@@ -55,38 +56,38 @@ public:
         return Instance()->InsertAtInternal(index, item);
     }
 
-    Sequence<T>* GetSubsequence(int startIndex, int endIndex) const override
+    Sequence<T>* GetSubsequence(int start_index, int end_index) const override
     {
-        if (startIndex < 0 || endIndex < 0 || startIndex > endIndex || endIndex >= data.GetSize())
+        if (start_index < 0 || end_index < 0 || start_index > end_index || end_index >= data.GetSize())
         {
             throw std::out_of_range("Index out of range");
         }
 
-        return new ListSequence<T>(data.GetSubList(startIndex, endIndex));
+        return new ListSequence<T>(data.GetSubList(start_index, end_index));
     }
 
     Sequence<T>* Concat(const Sequence<T>& other) const override
     {
-        LinkedList<T> otherList;
+        LinkedList<T> other_list;
         for (int index = 0; index < other.GetLength(); index++)
         {
-            otherList.Append(other.Get(index));
+            other_list.Append(other.Get(index));
         }
 
-        return new ListSequence<T>(data.Concat(otherList));
+        return new ListSequence<T>(data.Concat(other_list));
     }
 
-    Sequence<T>* Slice(int startIndex, int count, const Sequence<T>& replacement) const override
+    Sequence<T>* Slice(int start_index, int count, const Sequence<T>& replacement) const override
     {
         int this_size = this->GetLength();
-        if (startIndex < 0 || count < 0 || startIndex > this_size || startIndex + count > this_size)
+        if (start_index < 0 || count < 0 || start_index > this_size || start_index + count > this_size)
         {
             throw std::out_of_range("Index out of range");
         }
 
         LinkedList<T> new_list;
 
-        for (int index = 0; index < startIndex; index++)
+        for (int index = 0; index < start_index; index++)
         {
             new_list.Append(this->Get(index));
         }
@@ -96,7 +97,7 @@ public:
             new_list.Append(replacement.Get(index));
         }
 
-        for (int index = startIndex + count; index < this_size; index++)
+        for (int index = start_index + count; index < this_size; index++)
         {
             new_list.Append(this->Get(index));
         }
@@ -104,66 +105,43 @@ public:
         return new ListSequence<T>(new_list);
     }
 
-    Sequence<Sequence<T>*>* Split(const T& separator) const override
-    {
-        ListSequence<Sequence<T>*>* parts = new ListSequence<Sequence<T>*>();
-        int part_start = 0;
-
-        for (int index = 0; index < this->GetLength(); index++)
-        {
-            if (this->Get(index) == separator)
-            {
-                if (part_start == index)
-                {
-                    parts->Append(new ListSequence<T>());
-                }
-                else
-                {
-                    parts->Append(this->GetSubsequence(part_start, index - 1));
-                }
-                part_start = index + 1;
-            }
-        }
-
-        if (part_start == this->GetLength())
-        {
-            parts->Append(new ListSequence<T>());
-        }
-        else
-        {
-            parts->Append(this->GetSubsequence(part_start, this->GetLength() - 1));
-        }
-
-        return parts;
-    }
 
     Sequence<T>* Map(T (*func)(T)) const override
     {
-        int size = this->GetLength();
-        ListSequence<T> mapped;
+        LinkedList<T> mapped;
+        IEnumerator<T>* enumerator = this->GetEnumerator();
 
-        for (int ind = 0; ind < size; ind++)
+        while (enumerator->MoveNext())
         {
-            mapped.Append(func(this->Get(ind)));
+            mapped.Append(func(enumerator->Current()));
         }
 
+        delete enumerator;
         return new ListSequence<T>(mapped);
     }
 
     Sequence<T>* Where(bool (*predicate)(T)) const override
     {
-        int size = this->GetLength();
         LinkedList<T> new_list;
-        for (int ind = 0; ind < size; ind++)
+        IEnumerator<T>* enumerator = this->GetEnumerator();
+
+        while (enumerator->MoveNext())
         {
-            if (predicate(this->Get(ind))) 
+            if (predicate(enumerator->Current())) 
             {
-                new_list.Append(this->Get(ind));
+                new_list.Append(enumerator->Current());
             }
         }
 
+        delete enumerator;
         return new ListSequence<T>(new_list);
     }
+
+    IEnumerator<T>* GetEnumerator() const override
+    {
+        return data.GetEnumerator();
+    }
+
 
 protected:
     Sequence<T>* AppendInternal(const T& item) override
