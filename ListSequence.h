@@ -77,6 +77,29 @@ public:
         return new ListSequence<T>(data.Concat(other_list));
     }
 
+    Sequence<T>* Slice(int start_index, int count) const override
+    {
+        int this_size = this->GetLength();
+        if (start_index < 0 || count < 0 || start_index > this_size || start_index + count > this_size)
+        {
+            throw std::out_of_range("Index out of range");
+        }
+
+        LinkedList<T> new_list;
+
+        for (int index = 0; index < start_index; index++)
+        {
+            new_list.Append(this->Get(index));
+        }
+
+        for (int index = start_index + count; index < this_size; index++)
+        {
+            new_list.Append(this->Get(index));
+        }
+
+        return new ListSequence<T>(new_list);
+    }
+
     Sequence<T>* Slice(int start_index, int count, const Sequence<T>& replacement) const override
     {
         int this_size = this->GetLength();
@@ -105,20 +128,6 @@ public:
         return new ListSequence<T>(new_list);
     }
 
-
-    Sequence<T>* Map(T (*func)(T)) const override
-    {
-        LinkedList<T> mapped;
-        IEnumerator<T>* enumerator = this->GetEnumerator();
-
-        while (enumerator->MoveNext())
-        {
-            mapped.Append(func(enumerator->Current()));
-        }
-
-        delete enumerator;
-        return new ListSequence<T>(mapped);
-    }
 
     Sequence<T>* Where(bool (*predicate)(T)) const override
     {

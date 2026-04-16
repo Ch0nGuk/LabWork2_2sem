@@ -20,6 +20,7 @@ protected:
     
     public:
         ArrayEnumerator(const ArraySequence<T>* array_sequence) : array(array_sequence), index(-1) {}
+        ArrayEnumerator(const ArrayEnumerator& other) : array(other.array), index(other.index) {}
 
         bool MoveNext() override
         {
@@ -107,6 +108,32 @@ public:
         return CreateSequence(new_arr);
     }
 
+    Sequence<T>* Slice(int start_index, int count) const override
+    {
+        int this_size = this->GetLength();
+        if (start_index < 0 || count < 0 || start_index > this_size || start_index + count > this_size)
+        {
+            throw std::out_of_range("Index out of range");
+        }
+
+        DynamicArray<T> new_arr(this_size - count);
+        int new_index = 0;
+
+        for (int index = 0; index < start_index; index++)
+        {
+            new_arr.Set(new_index, this->Get(index));
+            new_index++;
+        }
+
+        for (int index = start_index + count; index < this_size; index++)
+        {
+            new_arr.Set(new_index, this->Get(index));
+            new_index++;
+        }
+
+        return CreateSequence(new_arr);
+    }
+
     Sequence<T>* Slice(int start_index, int count, const Sequence<T>& replacement) const override
     {
         int this_size = this->GetLength();
@@ -138,22 +165,6 @@ public:
         }
 
         return CreateSequence(new_arr);
-    }
-
-    Sequence<T>* Map(T (*func)(T)) const override
-    {
-        DynamicArray<T> mapped(this->GetLength());
-        IEnumerator<T>* enumerator = this->GetEnumerator();
-        int index = 0;
-
-        while (enumerator->MoveNext())
-        {
-            mapped.Set(index, func(enumerator->Current()));
-            index++;
-        }
-
-        delete enumerator;
-        return CreateSequence(mapped);
     }
 
     Sequence<T>* Where(bool (*predicate)(T)) const override

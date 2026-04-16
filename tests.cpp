@@ -4,12 +4,17 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <utility>
 
 #include "DynamicArray.h"
 #include "LinkedList.h"
+#include "map.h"
 #include "MutableArraySequence.h"
 #include "ImmutableArraySequence.h"
 #include "ListSequence.h"
+#include "sequence_factory.h"
+#include "unzip.h"
+#include "zip.h"
 
 namespace
 {
@@ -81,6 +86,26 @@ namespace
         {
             AssertEqual(sequence->Get(index), expected[index], message + ": unexpected item");
         }
+    }
+
+    template <typename T>
+    void AssertTypedSequenceContent(const Sequence<T>* sequence, const T* expected, int count, const std::string& message)
+    {
+        AssertEqual(sequence->GetLength(), count, message + ": unexpected length");
+        for (int index = 0; index < count; index++)
+        {
+            AssertEqual(sequence->Get(index), expected[index], message + ": unexpected item");
+        }
+    }
+
+    double Half(int value)
+    {
+        return value / 2.0;
+    }
+
+    bool IsPositive(int value)
+    {
+        return value > 0;
     }
 
     // Проверяет создание, изменение, Resize и ошибочные случаи DynamicArray.
@@ -182,7 +207,8 @@ namespace
         Sequence<int>* concatenated = sequence->Concat(*subsequence);
         AssertSequenceContent(concatenated, expected_concat, 9, "MutableArraySequence Concat");
 
-        Sequence<int>* mapped = sequence->Map(Square);
+        ListSequenceFactory<int> factory;
+        Sequence<int>* mapped = Map<int, int>(*sequence, Square, factory);
         AssertSequenceContent(mapped, expected_map, 6, "MutableArraySequence Map");
 
         Sequence<int>* filtered = sequence->Where(IsEven);
@@ -233,7 +259,8 @@ namespace
         AssertSequenceContent(prepended, expected_prepend, 4, "ImmutableArraySequence Prepend result");
         AssertSequenceContent(inserted, expected_insert, 4, "ImmutableArraySequence InsertAt result");
 
-        Sequence<int>* mapped = sequence->Map(Square);
+        ListSequenceFactory<int> factory;
+        Sequence<int>* mapped = Map<int, int>(*sequence, Square, factory);
         Sequence<int>* filtered = sequence->Where(IsEven);
         AssertSequenceContent(mapped, expected_map, 3, "ImmutableArraySequence Map");
         AssertSequenceContent(filtered, expected_where, 1, "ImmutableArraySequence Where");
@@ -277,7 +304,8 @@ namespace
         Sequence<int>* subsequence = sequence->GetSubsequence(1, 3);
         AssertSequenceContent(subsequence, expected_subsequence, 3, "ListSequence GetSubsequence");
 
-        Sequence<int>* mapped = sequence->Map(Square);
+        ListSequenceFactory<int> factory;
+        Sequence<int>* mapped = Map<int, int>(*sequence, Square, factory);
         Sequence<int>* filtered = sequence->Where(IsEven);
         AssertSequenceContent(mapped, expected_map, 6, "ListSequence Map");
         AssertSequenceContent(filtered, expected_where, 3, "ListSequence Where");
@@ -338,9 +366,76 @@ namespace
         delete empty_enumerator;
         delete empty_sequence;
     }
+
+    void TestMapZipUnzip()
+    {
+        int items[] = {1, 2, 3, 4};
+        double expected_half[] = {0.5, 1.0, 1.5, 2.0};
+        bool expected_positive[] = {true, true, true, true};
+        std::pair<int, int> expected_zip[] = {
+            std::make_pair(1, 10),
+            std::make_pair(2, 20),
+            std::make_pair(3, 30)
+        };
+        int expected_first_unzip[] = {1, 2, 3};
+        int expected_second_unzip[] = {10, 20, 30};
+
+        Sequence<int>* mutable_sequence = new MutableArraySequence<int>(items, 4);
+        Sequence<int>* immutable_sequence = new ImmutableArraySequence<int>(items, 4);
+        Sequence<int>* list_sequence = new ListSequence<int>(items, 4);
+        int other_items[] = {10, 20, 30};
+        Sequence<int>* other_sequence = new ListSequence<int>(other_items, 3);
+        Sequence<int>* empty_sequence = new ListSequence<int>();
+
+        MutableArraySequenceFactory<double> mutable_double_factory;
+        ImmutableArraySequenceFactory<double> immutable_double_factory;
+        ListSequenceFactory<bool> bool_factory;
+        ListSequenceFactory<std::pair<int, int>> pair_factory;
+        ListSequenceFactory<int> int_factory;
+
+        Sequence<double>* mutable_mapped = Map<int, double>(*mutable_sequence, Half, mutable_double_factory);
+        Sequence<double>* immutable_mapped = Map<int, double>(*immutable_sequence, Half, immutable_double_factory);
+        Sequence<bool>* bool_mapped = Map<int, bool>(*list_sequence, IsPositive, bool_factory);
+        Sequence<double>* empty_mapped = Map<int, double>(*empty_sequence, Half, immutable_double_factory);
+
+        AssertTypedSequenceContent(mutable_mapped, expected_half, 4, "Generic Map mutable source to double");
+        AssertTypedSequenceContent(immutable_mapped, expected_half, 4, "Generic Map immutable source to double");
+        AssertTypedSequenceContent(bool_mapped, expected_positive, 4, "Generic Map list source to bool");
+        AssertEqual(empty_mapped->GetLength(), 0, "Generic Map empty sequence");
+
+        Sequence<std::pair<int, int>>* zipped = Zip<int, int>(*mutable_sequence, *other_sequence, pair_factory);
+        Sequence<std::pair<int, int>>* zipped_empty = Zip<int, int>(*empty_sequence, *other_sequence, pair_factory);
+
+        AssertTypedSequenceContent(zipped, expected_zip, 3, "Zip must pair elements up to shorter sequence");
+        AssertEqual(zipped_empty->GetLength(), 0, "Zip with empty sequence must be empty");
+
+        std::pair<Sequence<int>*, Sequence<int>*> unzipped = Unzip<int, int>(*zipped, int_factory, int_factory);
+        AssertSequenceContent(unzipped.first, expected_first_unzip, 3, "Unzip first result");
+        AssertSequenceContent(unzipped.second, expected_second_unzip, 3, "Unzip second result");
+
+        std::pair<Sequence<int>*, Sequence<int>*> empty_unzipped = Unzip<int, int>(*zipped_empty, int_factory, int_factory);
+        AssertEqual(empty_unzipped.first->GetLength(), 0, "Unzip first empty result");
+        AssertEqual(empty_unzipped.second->GetLength(), 0, "Unzip second empty result");
+
+        delete mutable_sequence;
+        delete immutable_sequence;
+        delete list_sequence;
+        delete other_sequence;
+        delete empty_sequence;
+        delete mutable_mapped;
+        delete immutable_mapped;
+        delete bool_mapped;
+        delete empty_mapped;
+        delete zipped;
+        delete zipped_empty;
+        delete unzipped.first;
+        delete unzipped.second;
+        delete empty_unzipped.first;
+        delete empty_unzipped.second;
+    }
 }
 
-// Запускает полный локальный набор регрессионных тестов ядра лабы.
+// Запускает полный локальный набор тестов ядра лабы.
 void RunAllTests()
 {
     TestDynamicArray();
@@ -349,6 +444,7 @@ void RunAllTests()
     TestImmutableArraySequence();
     TestListSequence();
     TestEnumerators();
+    TestMapZipUnzip();
 
     std::cout << "All tests passed." << std::endl;
 }

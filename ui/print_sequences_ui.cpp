@@ -5,4 +5,6 @@
 void PrintSequencesInUi(const UiState& state)
 {
     PrintStoredSequences(state);
+    PrintStoredDoubleSequences(state);
+    PrintStoredPairSequences(state);
 }

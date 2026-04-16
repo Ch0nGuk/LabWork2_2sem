@@ -22,15 +22,17 @@ private:
     Node<T>* tail;
     int size;
 
-    void CheckIndex(int index) const
+    bool CheckIndex(int index) const
     {
         if (index < 0 || index >= size)
         {
             throw std::out_of_range("Index out of range");
         }
+
+        return true;
     }
 
-    void Clear()
+    bool Clear()
     {
         Node<T>* current = head;
         while (current != nullptr)
@@ -43,6 +45,7 @@ private:
         head = nullptr;
         tail = nullptr;
         size = 0;
+        return true;
     }
 
     Node<T>* GetNode(int index) const
@@ -66,6 +69,8 @@ private:
     
     public:
         ListEnumerator(const Node<T>* head) : current(nullptr), next(head) {}
+        ListEnumerator(const ListEnumerator& other) : current(other.current), next(other.next) {}
+
 
         bool MoveNext() override
         {
@@ -160,7 +165,7 @@ public:
         return size;
     }
 
-    void Append(const T& item)
+    LinkedList<T>& Append(const T& item)
     {
         Node<T>* new_node = new Node<T>(item);
 
@@ -176,9 +181,10 @@ public:
         }
 
         size++;
+        return *this;
     }
 
-    void Prepend(const T& item)
+    LinkedList<T>& Prepend(const T& item)
     {
         Node<T>* new_node = new Node<T>(item, head);
         head = new_node;
@@ -189,9 +195,10 @@ public:
         }
 
         size++;
+        return *this;
     }
 
-    void InsertAt(int index, const T& item)
+    LinkedList<T>& InsertAt(int index, const T& item)
     {
         if (index < 0 || index > size)
         {
@@ -201,19 +208,20 @@ public:
         if (index == 0)
         {
             Prepend(item);
-            return;
+            return *this;
         }
 
         if (index == size)
         {
             Append(item);
-            return;
+            return *this;
         }
 
         Node<T>* previous = GetNode(index - 1);
         Node<T>* new_node = new Node<T>(item, previous->next);
         previous->next = new_node;
         size++;
+        return *this;
     }
 
     LinkedList<T> GetSubList(int start_index, int end_index) const

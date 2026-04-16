@@ -3,22 +3,24 @@ CXXFLAGS := -std=c++17 -Wall -Wextra -pedantic
 TARGET := lab_app
 
 SOURCES := \
-	append_ui.cpp \
-	concat_ui.cpp \
-	create_sequence_ui.cpp \
-	insert_at_ui.cpp \
+	ui/append_ui.cpp \
+	ui/concat_ui.cpp \
+	ui/create_sequence_ui.cpp \
+	ui/insert_at_ui.cpp \
 	main.cpp \
-	map_ui.cpp \
-	prepend_ui.cpp \
-	print_sequences_ui.cpp \
-	reduce_ui.cpp \
-	run_tests_ui.cpp \
-	sequence_ui_utils.cpp \
-	slice_ui.cpp \
-	subsequence_ui.cpp \
+	ui/map_ui.cpp \
+	ui/prepend_ui.cpp \
+	ui/print_sequences_ui.cpp \
+	ui/reduce_ui.cpp \
+	ui/run_tests_ui.cpp \
+	ui/sequence_ui_utils.cpp \
+	ui/slice_ui.cpp \
+	ui/subsequence_ui.cpp \
 	tests.cpp \
-	ui.cpp \
-	where_ui.cpp
+	ui/ui.cpp \
+	ui/where_ui.cpp \
+	ui/zip_ui.cpp \
+	ui/unzip_ui.cpp
 
 OBJECTS := $(SOURCES:.cpp=.o)
 

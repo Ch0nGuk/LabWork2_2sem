@@ -3,7 +3,7 @@
 #include <iostream>
 #include <exception>
 
-#include "tests.h"
+#include "../tests.h"
 
 void RunTestsInUi()
 {

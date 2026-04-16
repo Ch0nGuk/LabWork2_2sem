@@ -19,12 +19,12 @@ public:
     virtual Sequence<T>* InsertAt(int index, const T& item) = 0;
     virtual Sequence<T>* GetSubsequence(int start_index, int end_index) const = 0;
     virtual Sequence<T>* Concat(const Sequence<T>& other) const = 0;
+    virtual Sequence<T>* Slice(int start_index, int count) const = 0;
     virtual Sequence<T>* Slice(int start_index, int count, const Sequence<T>& replacement) const = 0;
     virtual IEnumerator<T>* GetEnumerator() const = 0;
 
     virtual Sequence<T>* Instance() = 0;
 
-    virtual Sequence<T>* Map(T (*func)(T)) const = 0;
     virtual Sequence<T>* Where(bool (*predicate)(T)) const = 0;
     T Reduce(T (*func)(T, T), T start_value) const
     {

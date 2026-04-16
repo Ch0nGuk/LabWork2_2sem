@@ -1,8 +1,9 @@
-# LabWork2_2sem
+﻿# LabWork2_2sem
 
 Лабораторная работа по линейным структурам данных на C++.
 
-Проект содержит:
+## Что есть в проекте
+
 - `DynamicArray<T>`
 - `LinkedList<T>`
 - `Sequence<T>`
@@ -10,12 +11,24 @@
 - `MutableArraySequence<T>`
 - `ImmutableArraySequence<T>`
 - `ListSequence<T>`
+- `IEnumerator<T>`
+- внешний generic `Map`
+- внешний generic `Zip`
+- внешний generic `Unzip`
 - консольный UI
-- набор тестов
+- тесты
 
-Сейчас пользовательский UI работает с `Sequence<int>`.
+Сейчас пользовательский интерфейс работает в основном с `Sequence<int>`, а также умеет показывать результаты `Map` в `Sequence<double>` и `Zip` в `Sequence<std::pair<int, int>>`.
+
+## Структура
+
+- ядро структур данных и sequence-архитектуры лежит в корне проекта
+- UI вынесен в папку `ui/`
+- тесты находятся в `tests.cpp`
 
 ## Сборка и запуск
+
+Все команды ниже нужно выполнять из корня проекта.
 
 ### Windows
 
@@ -25,20 +38,19 @@
 "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvars64.bat"
 ```
 
-Перейди в папку проекта и собери приложение:
+Сборка:
 
 ```bat
-cd /d D:\Документы\GitHub\LabWork2_2sem
-cl /nologo /EHsc append_ui.cpp concat_ui.cpp create_sequence_ui.cpp insert_at_ui.cpp main.cpp map_ui.cpp prepend_ui.cpp print_sequences_ui.cpp reduce_ui.cpp run_tests_ui.cpp sequence_ui_utils.cpp slice_ui.cpp subsequence_ui.cpp tests.cpp ui.cpp where_ui.cpp /Fe:lab_app.exe
+cl /nologo /EHsc ui\append_ui.cpp ui\concat_ui.cpp ui\create_sequence_ui.cpp ui\insert_at_ui.cpp main.cpp ui\map_ui.cpp ui\prepend_ui.cpp ui\print_sequences_ui.cpp ui\reduce_ui.cpp ui\run_tests_ui.cpp ui\sequence_ui_utils.cpp ui\slice_ui.cpp ui\subsequence_ui.cpp tests.cpp ui\ui.cpp ui\where_ui.cpp ui\zip_ui.cpp ui\unzip_ui.cpp /Fe:lab_app.exe
 ```
 
-Запуск:
+Запуск из `cmd`:
 
 ```bat
 lab_app.exe
 ```
 
-Если запуск идет из PowerShell:
+Запуск из PowerShell:
 
 ```powershell
 .\lab_app.exe
@@ -66,20 +78,37 @@ make
 make clean
 ```
 
-## Меню
+## Возможности UI
 
-В UI доступны основные операции:
-- `Create sequence`
-- `Print sequence`
-- `Append`
-- `Prepend`
-- `InsertAt`
-- `GetSubsequence`
-- `Concat`
+Через меню можно:
+
+- создавать последовательности
+- печатать сохраненные последовательности
+- выполнять `Append`
+- выполнять `Prepend`
+- выполнять `InsertAt`
+- получать `GetSubsequence`
+- выполнять `Concat`
+- выполнять `Map`
+- выполнять `Where`
+- выполнять `Reduce`
+- выполнять `Slice`
+- выполнять `Zip`
+- выполнять `Unzip`
+- запускать тесты
+
+## Тесты
+
+Тесты запускаются через пункт меню `Run tests`.
+
+Они покрывают:
+
+- `DynamicArray`
+- `LinkedList`
+- `MutableArraySequence`
+- `ImmutableArraySequence`
+- `ListSequence`
+- `IEnumerator`
 - `Map`
-- `Where`
-- `Reduce`
-- `Slice`
-- `Run tests`
-
-
+- `Zip`
+- `Unzip`

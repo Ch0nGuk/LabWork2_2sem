@@ -15,7 +15,9 @@
 #include "slice_ui.h"
 #include "subsequence_ui.h"
 #include "ui_state.h"
+#include "unzip_ui.h"
 #include "where_ui.h"
+#include "zip_ui.h"
 
 void RunUi()
 {
@@ -36,7 +38,9 @@ void RunUi()
         std::cout << "9.  Where sequence\n";
         std::cout << "10. Reduce sequence\n";
         std::cout << "11. Slice sequence\n";
-        std::cout << "12. Run tests\n";
+        std::cout << "12. Zip sequences\n";
+        std::cout << "13. Unzip sequence\n";
+        std::cout << "14. Run tests\n";
         std::cout << "0. Exit\n";
         std::cout << "\nChoice: ";
 
@@ -87,6 +91,12 @@ void RunUi()
             SliceInUi(state);
             break;
         case 12:
+            ZipInUi(state);
+            break;
+        case 13:
+            UnzipInUi(state);
+            break;
+        case 14:
             RunTestsInUi();
             break;
         case 0:
@@ -99,6 +109,16 @@ void RunUi()
     }
 
     for (Sequence<int>* sequence : state.sequences)
+    {
+        delete sequence;
+    }
+
+    for (Sequence<double>* sequence : state.double_sequences)
+    {
+        delete sequence;
+    }
+
+    for (Sequence<std::pair<int, int>>* sequence : state.pair_sequences)
     {
         delete sequence;
     }

@@ -3,9 +3,9 @@
 #include <iostream>
 #include <vector>
 
-#include "ImmutableArraySequence.h"
-#include "ListSequence.h"
-#include "MutableArraySequence.h"
+#include "../ImmutableArraySequence.h"
+#include "../ListSequence.h"
+#include "../MutableArraySequence.h"
 #include "sequence_ui_utils.h"
 
 void CreateSequenceInUi(UiState& state)

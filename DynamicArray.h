@@ -10,20 +10,21 @@ class DynamicArray
 private:
     T* data;
     int size;
-    int capacity;
 
-    void CheckIndex(int index) const
+    bool CheckIndex(int index) const
     {
         if (index < 0 || index >= size)
         {
             throw std::out_of_range("Index out of range");
         }
+
+        return true;
     }
 
 public:
-    DynamicArray() : data(nullptr), size(0), capacity(0) {}
+    DynamicArray() : data(nullptr), size(0) {}
 
-    explicit DynamicArray(int size) : data(nullptr), size(size), capacity(size)
+    explicit DynamicArray(int size) : data(nullptr), size(size)
     {
         if (size < 0)
         {
@@ -32,11 +33,11 @@ public:
 
         if (size > 0)
         {
-            data = new T[size];
+            data = new T[size]();
         }
     }
 
-    DynamicArray(const T* items, int size) : data(nullptr), size(size), capacity(size)
+    DynamicArray(const T* items, int size) : data(nullptr), size(size)
     {
         if (size < 0)
         {
@@ -50,7 +51,7 @@ public:
 
         if (size > 0)
         {
-            data = new T[size];
+            data = new T[size]();
             for (int index = 0; index < size; index++)
             {
                 data[index] = items[index];
@@ -58,11 +59,11 @@ public:
         }
     }
 
-    DynamicArray(const DynamicArray<T>& other) : data(nullptr), size(other.size), capacity(other.capacity)
+    DynamicArray(const DynamicArray<T>& other) : data(nullptr), size(other.size)
     {
-        if (capacity > 0)
+        if (size > 0)
         {
-            data = new T[capacity];
+            data = new T[size]();
             for (int index = 0; index < size; index++)
             {
                 data[index] = other.data[index];
@@ -79,18 +80,12 @@ public:
     {
         std::swap(data, other.data);
         std::swap(size, other.size);
-        std::swap(capacity, other.capacity);
         return *this;
     }
 
     int GetSize() const
     {
         return size;
-    }
-
-    int GetCapacity() const
-    {
-        return capacity;
     }
 
     const T& Get(int index) const
@@ -105,13 +100,14 @@ public:
         return data[index];
     }
 
-    void Set(int index, const T& value)
+    DynamicArray<T>& Set(int index, const T& value)
     {
         CheckIndex(index);
         data[index] = value;
+        return *this;
     }
 
-    void Resize(int new_size)
+    DynamicArray<T>& Resize(int new_size)
     {
         if (new_size < 0)
         {
@@ -120,10 +116,10 @@ public:
 
         if (new_size == size)
         {
-            return;
+            return *this;
         }
 
-        T* new_data = (new_size > 0) ? new T[new_size] : nullptr;
+        T* new_data = (new_size > 0) ? new T[new_size]() : nullptr;
         int elements_to_copy = std::min(size, new_size);
 
         for (int index = 0; index < elements_to_copy; index++)
@@ -134,7 +130,7 @@ public:
         delete[] data;
         data = new_data;
         size = new_size;
-        capacity = new_size;
+        return *this;
     }
 
     T& operator[](int index)
