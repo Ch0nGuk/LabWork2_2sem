@@ -69,11 +69,14 @@ public:
     Sequence<T>* Concat(const Sequence<T>& other) const override
     {
         LinkedList<T> other_list;
-        for (int index = 0; index < other.GetLength(); index++)
+        IEnumerator<T>* enumerator = other.GetEnumerator();
+
+        while (enumerator->MoveNext())
         {
-            other_list.Append(other.Get(index));
+            other_list.Append(enumerator->Current());
         }
 
+        delete enumerator;
         return new ListSequence<T>(data.Concat(other_list));
     }
 
@@ -86,17 +89,19 @@ public:
         }
 
         LinkedList<T> new_list;
+        IEnumerator<T>* enumerator = this->GetEnumerator();
+        int index = 0;
 
-        for (int index = 0; index < start_index; index++)
+        while (enumerator->MoveNext())
         {
-            new_list.Append(this->Get(index));
+            if (index < start_index || index >= start_index + count)
+            {
+                new_list.Append(enumerator->Current());
+            }
+            index++;
         }
 
-        for (int index = start_index + count; index < this_size; index++)
-        {
-            new_list.Append(this->Get(index));
-        }
-
+        delete enumerator;
         return new ListSequence<T>(new_list);
     }
 
@@ -109,22 +114,40 @@ public:
         }
 
         LinkedList<T> new_list;
+        IEnumerator<T>* source_enumerator = this->GetEnumerator();
+        IEnumerator<T>* replacement_enumerator = replacement.GetEnumerator();
+        bool inserted_replacement = false;
+        int index = 0;
 
-        for (int index = 0; index < start_index; index++)
+        while (source_enumerator->MoveNext())
         {
-            new_list.Append(this->Get(index));
+            if (!inserted_replacement && index == start_index)
+            {
+                while (replacement_enumerator->MoveNext())
+                {
+                    new_list.Append(replacement_enumerator->Current());
+                }
+                inserted_replacement = true;
+            }
+
+            if (index < start_index || index >= start_index + count)
+            {
+                new_list.Append(source_enumerator->Current());
+            }
+
+            index++;
         }
 
-        for (int index = 0; index < replacement.GetLength(); index++)
+        if (!inserted_replacement)
         {
-            new_list.Append(replacement.Get(index));
+            while (replacement_enumerator->MoveNext())
+            {
+                new_list.Append(replacement_enumerator->Current());
+            }
         }
 
-        for (int index = start_index + count; index < this_size; index++)
-        {
-            new_list.Append(this->Get(index));
-        }
-
+        delete source_enumerator;
+        delete replacement_enumerator;
         return new ListSequence<T>(new_list);
     }
 
