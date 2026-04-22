@@ -1,6 +1,7 @@
 #include "zip_ui.h"
 
 #include <iostream>
+#include <memory>
 #include <utility>
 
 #include "../sequence_factory.h"
@@ -23,14 +24,15 @@ void ZipInUi(UiState& state)
     }
 
     ListSequenceFactory<std::pair<int, int>> factory;
-    Sequence<std::pair<int, int>>* result = Zip<int, int>(
+    std::unique_ptr<Sequence<std::pair<int, int>>> result(Zip<int, int>(
         *state.sequences[first_index],
         *state.sequences[second_index],
         factory
-    );
+    ));
 
-    state.pair_sequences.push_back(result);
+    state.pair_sequences.push_back(result.get());
     std::cout << "Created zipped sequence: ";
-    PrintSequence(result);
+    PrintSequence(result.get());
     std::cout << "\n";
+    result.release();
 }

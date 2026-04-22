@@ -1,6 +1,7 @@
 #include "map_ui.h"
 
 #include <iostream>
+#include <memory>
 
 #include "../map.h"
 #include "sequence_ui_utils.h"
@@ -66,67 +67,73 @@ void MapInUi(UiState& state)
     case 1:
     {
         ListSequenceFactory<int> factory;
-        Sequence<int>* result = Map<int, int>(*state.sequences[index], Identity, factory);
-        state.sequences.push_back(result);
+        std::unique_ptr<Sequence<int>> result(Map<int, int>(*state.sequences[index], Identity, factory));
+        state.sequences.push_back(result.get());
 
         std::cout << "Created mapped sequence: ";
-        PrintSequence(result);
+        PrintSequence(result.get());
         std::cout << "\n";
+        result.release();
         break;
     }
     case 2:
     {
         ListSequenceFactory<int> factory;
-        Sequence<int>* result = Map<int, int>(*state.sequences[index], DoubleValue, factory);
-        state.sequences.push_back(result);
+        std::unique_ptr<Sequence<int>> result(Map<int, int>(*state.sequences[index], DoubleValue, factory));
+        state.sequences.push_back(result.get());
 
         std::cout << "Created mapped sequence: ";
-        PrintSequence(result);
+        PrintSequence(result.get());
         std::cout << "\n";
+        result.release();
         break;
     }
     case 3:
     {
         ListSequenceFactory<int> factory;
-        Sequence<int>* result = Map<int, int>(*state.sequences[index], SquareValue, factory);
-        state.sequences.push_back(result);
+        std::unique_ptr<Sequence<int>> result(Map<int, int>(*state.sequences[index], SquareValue, factory));
+        state.sequences.push_back(result.get());
 
         std::cout << "Created mapped sequence: ";
-        PrintSequence(result);
+        PrintSequence(result.get());
         std::cout << "\n";
+        result.release();
         break;
     }
     case 4:
     {
         ListSequenceFactory<int> factory;
-        Sequence<int>* result = Map<int, int>(*state.sequences[index], NegateValue, factory);
-        state.sequences.push_back(result);
+        std::unique_ptr<Sequence<int>> result(Map<int, int>(*state.sequences[index], NegateValue, factory));
+        state.sequences.push_back(result.get());
 
         std::cout << "Created mapped sequence: ";
-        PrintSequence(result);
+        PrintSequence(result.get());
         std::cout << "\n";
+        result.release();
         break;
     }
     case 5:
     {
         ListSequenceFactory<double> factory;
-        Sequence<double>* result = Map<int, double>(*state.sequences[index], HalfValue, factory);
-        state.double_sequences.push_back(result);
+        std::unique_ptr<Sequence<double>> result(Map<int, double>(*state.sequences[index], HalfValue, factory));
+        state.double_sequences.push_back(result.get());
 
         std::cout << "Created mapped double sequence: ";
-        PrintSequence(result);
+        PrintSequence(result.get());
         std::cout << "\n";
+        result.release();
         break;
     }
     case 6:
     {
         ListSequenceFactory<double> factory;
-        Sequence<double>* result = Map<int, double>(*state.sequences[index], ShiftValue, factory);
-        state.double_sequences.push_back(result);
+        std::unique_ptr<Sequence<double>> result(Map<int, double>(*state.sequences[index], ShiftValue, factory));
+        state.double_sequences.push_back(result.get());
 
         std::cout << "Created mapped double sequence: ";
-        PrintSequence(result);
+        PrintSequence(result.get());
         std::cout << "\n";
+        result.release();
         break;
     }
     default:

@@ -1,6 +1,7 @@
 #include "subsequence_ui.h"
 
 #include <iostream>
+#include <memory>
 
 #include "sequence_ui_utils.h"
 
@@ -26,12 +27,13 @@ void GetSubsequenceInUi(UiState& state)
 
     try
     {
-        Sequence<int>* result = state.sequences[index]->GetSubsequence(start_index, end_index);
-        state.sequences.push_back(result);
+        std::unique_ptr<Sequence<int>> result(state.sequences[index]->GetSubsequence(start_index, end_index));
+        state.sequences.push_back(result.get());
 
         std::cout << "Created subsequence: ";
-        PrintSequence(result);
+        PrintSequence(result.get());
         std::cout << "\n";
+        result.release();
     }
     catch (const std::exception& error)
     {

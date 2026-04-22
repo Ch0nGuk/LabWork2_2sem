@@ -1,6 +1,7 @@
 #include "slice_ui.h"
 
 #include <iostream>
+#include <memory>
 
 #include "sequence_ui_utils.h"
 
@@ -33,16 +34,17 @@ void SliceInUi(UiState& state)
 
     try
     {
-        Sequence<int>* result = state.sequences[source_index]->Slice(
+        std::unique_ptr<Sequence<int>> result(state.sequences[source_index]->Slice(
             start_index,
             count,
             *state.sequences[replacement_index]
-        );
-        state.sequences.push_back(result);
+        ));
+        state.sequences.push_back(result.get());
 
         std::cout << "Created sliced sequence: ";
-        PrintSequence(result);
+        PrintSequence(result.get());
         std::cout << "\n";
+        result.release();
     }
     catch (const std::exception& error)
     {

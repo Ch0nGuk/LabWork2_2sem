@@ -1,6 +1,7 @@
 #include "create_sequence_ui.h"
 
 #include <iostream>
+#include <memory>
 #include <vector>
 
 #include "../ImmutableArraySequence.h"
@@ -37,26 +38,27 @@ void CreateSequenceInUi(UiState& state)
         }
     }
 
-    Sequence<int>* created_sequence = nullptr;
+    std::unique_ptr<Sequence<int>> created_sequence;
 
     switch (sequence_type)
     {
     case 1:
-        created_sequence = new MutableArraySequence<int>(items.data(), length);
+        created_sequence = std::make_unique<MutableArraySequence<int>>(items.data(), length);
         break;
     case 2:
-        created_sequence = new ImmutableArraySequence<int>(items.data(), length);
+        created_sequence = std::make_unique<ImmutableArraySequence<int>>(items.data(), length);
         break;
     case 3:
-        created_sequence = new ListSequence<int>(items.data(), length);
+        created_sequence = std::make_unique<ListSequence<int>>(items.data(), length);
         break;
     default:
         std::cout << "Unknown sequence type.\n";
         return;
     }
 
-    state.sequences.push_back(created_sequence);
+    state.sequences.push_back(created_sequence.get());
     std::cout << "Sequence created: ";
-    PrintSequence(created_sequence);
+    PrintSequence(created_sequence.get());
     std::cout << "\n";
+    created_sequence.release();
 }

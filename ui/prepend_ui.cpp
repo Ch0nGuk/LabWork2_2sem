@@ -1,6 +1,7 @@
 #include "prepend_ui.h"
 
 #include <iostream>
+#include <memory>
 
 #include "sequence_ui_utils.h"
 
@@ -22,10 +23,12 @@ void PrependInUi(UiState& state)
 
     if (result != state.sequences[index])
     {
-        state.sequences.push_back(result);
+        std::unique_ptr<Sequence<int>> owned_result(result);
+        state.sequences.push_back(owned_result.get());
         std::cout << "Created new sequence: ";
-        PrintSequence(result);
+        PrintSequence(owned_result.get());
         std::cout << "\n";
+        owned_result.release();
         return;
     }
 

@@ -1,6 +1,7 @@
 #ifndef ZIP_H
 #define ZIP_H
 
+#include <memory>
 #include <utility>
 
 #include "IEnumerator.h"
@@ -13,35 +14,22 @@ Sequence<std::pair<T1, T2>>* Zip(
     const Sequence<T2>& second,
     const SequenceFactory<std::pair<T1, T2>>& factory)
 {
-    Sequence<std::pair<T1, T2>>* result = factory.Create();
-    IEnumerator<T1>* first_enumerator = first.GetEnumerator();
-    IEnumerator<T2>* second_enumerator = second.GetEnumerator();
+    std::unique_ptr<Sequence<std::pair<T1, T2>>> result(factory.Create());
+    std::unique_ptr<IEnumerator<T1>> first_enumerator(first.GetEnumerator());
+    std::unique_ptr<IEnumerator<T2>> second_enumerator(second.GetEnumerator());
 
-    try
+    while (first_enumerator->MoveNext() && second_enumerator->MoveNext())
     {
-        while (first_enumerator->MoveNext() && second_enumerator->MoveNext())
-        {
-            Sequence<std::pair<T1, T2>>* next =
-                result->Append(std::make_pair(first_enumerator->Current(), second_enumerator->Current()));
+        Sequence<std::pair<T1, T2>>* next =
+            result->Append(std::make_pair(first_enumerator->Current(), second_enumerator->Current()));
 
-            if (next != result)
-            {
-                delete result;
-                result = next;
-            }
+        if (next != result.get())
+        {
+            result.reset(next);
         }
     }
-    catch (...)
-    {
-        delete first_enumerator;
-        delete second_enumerator;
-        delete result;
-        throw;
-    }
 
-    delete first_enumerator;
-    delete second_enumerator;
-    return result;
+    return result.release();
 }
 
 #endif // ZIP_H

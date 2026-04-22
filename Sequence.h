@@ -1,6 +1,8 @@
 #ifndef SEQUENCE_H
 #define SEQUENCE_H
 
+#include <memory>
+
 #include "IEnumerator.h"
 
 template <typename T>
@@ -29,14 +31,13 @@ public:
     T Reduce(T (*func)(T, T), T start_value) const
     {
         T result = start_value;
-        IEnumerator<T>* enumerator = GetEnumerator();
+        std::unique_ptr<IEnumerator<T>> enumerator(GetEnumerator());
 
         while (enumerator->MoveNext())
         {
             result = func(result, enumerator->Current());
         }
 
-        delete enumerator;
         return result;
     }
 

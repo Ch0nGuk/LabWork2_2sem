@@ -1,6 +1,7 @@
 #include "concat_ui.h"
 
 #include <iostream>
+#include <memory>
 
 #include "sequence_ui_utils.h"
 
@@ -21,12 +22,15 @@ void ConcatInUi(UiState& state)
 
     try
     {
-        Sequence<int>* result = state.sequences[first_index]->Concat(*state.sequences[second_index]);
-        state.sequences.push_back(result);
+        std::unique_ptr<Sequence<int>> result(
+            state.sequences[first_index]->Concat(*state.sequences[second_index])
+        );
+        state.sequences.push_back(result.get());
 
         std::cout << "Created concatenated sequence: ";
-        PrintSequence(result);
+        PrintSequence(result.get());
         std::cout << "\n";
+        result.release();
     }
     catch (const std::exception& error)
     {

@@ -1,6 +1,8 @@
 #ifndef LIST_SEQUENCE_H
 #define LIST_SEQUENCE_H
 
+#include <memory>
+
 #include "Sequence.h"
 #include "LinkedList.h"
 #include "IEnumerator.h"
@@ -69,14 +71,13 @@ public:
     Sequence<T>* Concat(const Sequence<T>& other) const override
     {
         LinkedList<T> other_list;
-        IEnumerator<T>* enumerator = other.GetEnumerator();
+        std::unique_ptr<IEnumerator<T>> enumerator(other.GetEnumerator());
 
         while (enumerator->MoveNext())
         {
             other_list.Append(enumerator->Current());
         }
 
-        delete enumerator;
         return new ListSequence<T>(data.Concat(other_list));
     }
 
@@ -89,7 +90,7 @@ public:
         }
 
         LinkedList<T> new_list;
-        IEnumerator<T>* enumerator = this->GetEnumerator();
+        std::unique_ptr<IEnumerator<T>> enumerator(this->GetEnumerator());
         int index = 0;
 
         while (enumerator->MoveNext())
@@ -101,7 +102,6 @@ public:
             index++;
         }
 
-        delete enumerator;
         return new ListSequence<T>(new_list);
     }
 
@@ -114,8 +114,8 @@ public:
         }
 
         LinkedList<T> new_list;
-        IEnumerator<T>* source_enumerator = this->GetEnumerator();
-        IEnumerator<T>* replacement_enumerator = replacement.GetEnumerator();
+        std::unique_ptr<IEnumerator<T>> source_enumerator(this->GetEnumerator());
+        std::unique_ptr<IEnumerator<T>> replacement_enumerator(replacement.GetEnumerator());
         bool inserted_replacement = false;
         int index = 0;
 
@@ -146,8 +146,6 @@ public:
             }
         }
 
-        delete source_enumerator;
-        delete replacement_enumerator;
         return new ListSequence<T>(new_list);
     }
 
@@ -155,7 +153,7 @@ public:
     Sequence<T>* Where(bool (*predicate)(T)) const override
     {
         LinkedList<T> new_list;
-        IEnumerator<T>* enumerator = this->GetEnumerator();
+        std::unique_ptr<IEnumerator<T>> enumerator(this->GetEnumerator());
 
         while (enumerator->MoveNext())
         {
@@ -165,7 +163,6 @@ public:
             }
         }
 
-        delete enumerator;
         return new ListSequence<T>(new_list);
     }
 

@@ -1,6 +1,8 @@
 #ifndef ARRAY_SEQUENCE_H
 #define ARRAY_SEQUENCE_H
 
+#include <memory>
+
 #include "Sequence.h"
 #include "DynamicArray.h"
 #include "ListSequence.h"
@@ -170,7 +172,7 @@ public:
     Sequence<T>* Where(bool (*predicate)(T)) const override
     {
         int new_size = 0;
-        IEnumerator<T>* enumerator = this->GetEnumerator();
+        std::unique_ptr<IEnumerator<T>> enumerator(this->GetEnumerator());
 
         while (enumerator->MoveNext())
         {
@@ -181,9 +183,7 @@ public:
         }
 
         DynamicArray<T> new_arr(new_size);
-        delete enumerator;
-
-        enumerator = this->GetEnumerator();
+        enumerator.reset(this->GetEnumerator());
         int new_index = 0;
 
         while (enumerator->MoveNext())
@@ -195,7 +195,6 @@ public:
             }
         }
 
-        delete enumerator;
         return CreateSequence(new_arr);
     }
 

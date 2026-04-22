@@ -216,7 +216,8 @@ namespace
 
         AssertEqual(sequence->Reduce(Sum, 0), 109, "MutableArraySequence Reduce");
 
-        Sequence<int>* replacement = new MutableArraySequence<int>(new int[2]{7, 8}, 2);
+        int replacement_items[] = {7, 8};
+        Sequence<int>* replacement = new MutableArraySequence<int>(replacement_items, 2);
         Sequence<int>* sliced = sequence->Slice(1, 4, *replacement);
         AssertSequenceContent(sliced, expected_slice, 4, "MutableArraySequence Slice");
 
