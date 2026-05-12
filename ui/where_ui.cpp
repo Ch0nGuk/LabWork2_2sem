@@ -1,8 +1,8 @@
 #include "where_ui.h"
 
 #include <iostream>
-#include <memory>
 
+#include "../UniquePtr.h"
 #include "sequence_ui_utils.h"
 
 namespace
@@ -69,7 +69,7 @@ void WhereInUi(UiState& state)
         return;
     }
 
-    std::unique_ptr<Sequence<int>> result(state.sequences[index]->Where(predicate));
+    UniquePtr<Sequence<int>> result(state.sequences[index]->Where(predicate));
     state.sequences.push_back(result.get());
 
     std::cout << "Created filtered sequence: ";

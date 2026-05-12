@@ -1,8 +1,6 @@
 #ifndef ARRAY_SEQUENCE_H
 #define ARRAY_SEQUENCE_H
 
-#include <memory>
-
 #include "Sequence.h"
 #include "DynamicArray.h"
 #include "ListSequence.h"
@@ -84,7 +82,7 @@ public:
         }
 
         int sub_size = end_index - start_index + 1;
-        DynamicArray<T> sub_data(sub_size);
+        DynamicArray<T> sub_data(sub_size, this->data.Get(start_index));
         for (int ind = 0; ind < sub_size; ind++)
         {
             sub_data.Set(ind, this->data.Get(ind + start_index));
@@ -97,7 +95,13 @@ public:
     {
         int this_size = this->data.GetSize();
         int other_size = other.GetLength();
-        DynamicArray<T> new_arr(this_size + other_size);
+        int new_size = this_size + other_size;
+        if (new_size == 0)
+        {
+            return CreateSequence(DynamicArray<T>());
+        }
+
+        DynamicArray<T> new_arr(new_size, (this_size > 0) ? this->data.Get(0) : other.Get(0));
         for (int ind = 0; ind < this_size; ind++)
         {
             new_arr.Set(ind, this->data.Get(ind));
@@ -118,7 +122,15 @@ public:
             throw std::out_of_range("Index out of range");
         }
 
-        DynamicArray<T> new_arr(this_size - count);
+        int new_size = this_size - count;
+        if (new_size == 0)
+        {
+            return CreateSequence(DynamicArray<T>());
+        }
+
+        DynamicArray<T> new_arr(
+            new_size,
+            (start_index > 0) ? this->Get(0) : this->Get(start_index + count));
         int new_index = 0;
 
         for (int index = 0; index < start_index; index++)
@@ -145,7 +157,17 @@ public:
         }
 
         int replacement_size = replacement.GetLength();
-        DynamicArray<T> new_arr(this_size - count + replacement_size);
+        int new_size = this_size - count + replacement_size;
+        if (new_size == 0)
+        {
+            return CreateSequence(DynamicArray<T>());
+        }
+
+        DynamicArray<T> new_arr(
+            new_size,
+            (start_index > 0)
+                ? this->Get(0)
+                : ((replacement_size > 0) ? replacement.Get(0) : this->Get(start_index + count)));
         int new_index = 0;
 
         for (int index = 0; index < start_index; index++)
@@ -172,17 +194,27 @@ public:
     Sequence<T>* Where(bool (*predicate)(T)) const override
     {
         int new_size = 0;
-        std::unique_ptr<IEnumerator<T>> enumerator(this->GetEnumerator());
+        UniquePtr<IEnumerator<T>> enumerator(this->GetEnumerator());
+        const T* first_match = nullptr;
 
         while (enumerator->MoveNext())
         {
             if (predicate(enumerator->Current()))
             {
+                if (first_match == nullptr)
+                {
+                    first_match = &enumerator->Current();
+                }
                 new_size++;
             }
         }
 
-        DynamicArray<T> new_arr(new_size);
+        if (new_size == 0)
+        {
+            return CreateSequence(DynamicArray<T>());
+        }
+
+        DynamicArray<T> new_arr(new_size, *first_match);
         enumerator.reset(this->GetEnumerator());
         int new_index = 0;
 
@@ -207,7 +239,7 @@ protected:
     Sequence<T>* AppendInternal(const T& item) override
     {
         int old_size = this->data.GetSize();
-        this->data.Resize(old_size + 1);
+        this->data.Resize(old_size + 1, item);
         this->data.Set(old_size, item);
 
         return this;
@@ -217,7 +249,7 @@ protected:
     {
         int old_size = this->data.GetSize();
         DynamicArray<T> tmp_array = this->data;
-        this->data.Resize(old_size + 1);
+        this->data.Resize(old_size + 1, item);
         for (int index = 0; index < old_size; index++)
         {
             this->data.Set(index + 1, tmp_array.Get(index));
@@ -243,7 +275,7 @@ protected:
         }
         int old_size = this->data.GetSize();
         DynamicArray<T> tmp_array = this->data;
-        this->data.Resize(old_size + 1);
+        this->data.Resize(old_size + 1, item);
         for (int ind = index; ind < old_size; ind++)
         {
             this->data.Set(ind + 1, tmp_array.Get(ind));

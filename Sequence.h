@@ -1,9 +1,13 @@
 #ifndef SEQUENCE_H
 #define SEQUENCE_H
 
-#include <memory>
+#include <utility>
 
+#include "UniquePtr.h"
 #include "IEnumerator.h"
+
+template <typename T>
+class SequenceFactory;
 
 template <typename T>
 class Sequence
@@ -31,7 +35,7 @@ public:
     T Reduce(T (*func)(T, T), T start_value) const
     {
         T result = start_value;
-        std::unique_ptr<IEnumerator<T>> enumerator(GetEnumerator());
+        UniquePtr<IEnumerator<T>> enumerator(GetEnumerator());
 
         while (enumerator->MoveNext())
         {
@@ -39,6 +43,76 @@ public:
         }
 
         return result;
+    }
+
+    template <typename T2, typename Mapper>
+    Sequence<T2>* Map(Mapper mapper, const SequenceFactory<T2>& factory) const
+    {
+        UniquePtr<Sequence<T2>> result(factory.Create());
+        UniquePtr<IEnumerator<T>> enumerator(GetEnumerator());
+
+        while (enumerator->MoveNext())
+        {
+            Sequence<T2>* next = result->Append(mapper(enumerator->Current()));
+            if (next != result.get())
+            {
+                result.reset(next);
+            }
+        }
+
+        return result.release();
+    }
+
+    template <typename T2>
+    Sequence<std::pair<T, T2>>* Zip(
+        const Sequence<T2>& other,
+        const SequenceFactory<std::pair<T, T2>>& factory) const
+    {
+        UniquePtr<Sequence<std::pair<T, T2>>> result(factory.Create());
+        UniquePtr<IEnumerator<T>> first_enumerator(GetEnumerator());
+        UniquePtr<IEnumerator<T2>> second_enumerator(other.GetEnumerator());
+
+        while (first_enumerator->MoveNext() && second_enumerator->MoveNext())
+        {
+            Sequence<std::pair<T, T2>>* next = result->Append(
+                std::make_pair(first_enumerator->Current(), second_enumerator->Current()));
+
+            if (next != result.get())
+            {
+                result.reset(next);
+            }
+        }
+
+        return result.release();
+    }
+
+    template <typename T1, typename T2>
+    std::pair<Sequence<T1>*, Sequence<T2>*> Unzip(
+        const SequenceFactory<T1>& first_factory,
+        const SequenceFactory<T2>& second_factory) const
+    {
+        UniquePtr<Sequence<T1>> first_result(first_factory.Create());
+        UniquePtr<Sequence<T2>> second_result(second_factory.Create());
+        UniquePtr<IEnumerator<T>> enumerator(GetEnumerator());
+
+        while (enumerator->MoveNext())
+        {
+            const T& value = enumerator->Current();
+
+            Sequence<T1>* next_first = first_result->Append(value.first);
+            if (next_first != first_result.get())
+            {
+                first_result.reset(next_first);
+            }
+
+            Sequence<T2>* next_second = second_result->Append(value.second);
+            if (next_second != second_result.get())
+            {
+                second_result.reset(next_second);
+            }
+        }
+
+        return std::make_pair(first_result.release(), second_result.release());
     }
 
     

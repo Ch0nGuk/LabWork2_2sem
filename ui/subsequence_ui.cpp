@@ -1,8 +1,8 @@
 #include "subsequence_ui.h"
 
 #include <iostream>
-#include <memory>
 
+#include "../UniquePtr.h"
 #include "sequence_ui_utils.h"
 
 void GetSubsequenceInUi(UiState& state)
@@ -27,7 +27,7 @@ void GetSubsequenceInUi(UiState& state)
 
     try
     {
-        std::unique_ptr<Sequence<int>> result(state.sequences[index]->GetSubsequence(start_index, end_index));
+        UniquePtr<Sequence<int>> result(state.sequences[index]->GetSubsequence(start_index, end_index));
         state.sequences.push_back(result.get());
 
         std::cout << "Created subsequence: ";

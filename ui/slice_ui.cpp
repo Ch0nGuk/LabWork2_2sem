@@ -1,8 +1,8 @@
 #include "slice_ui.h"
 
 #include <iostream>
-#include <memory>
 
+#include "../UniquePtr.h"
 #include "sequence_ui_utils.h"
 
 void SliceInUi(UiState& state)
@@ -34,7 +34,7 @@ void SliceInUi(UiState& state)
 
     try
     {
-        std::unique_ptr<Sequence<int>> result(state.sequences[source_index]->Slice(
+        UniquePtr<Sequence<int>> result(state.sequences[source_index]->Slice(
             start_index,
             count,
             *state.sequences[replacement_index]

@@ -1,12 +1,11 @@
 #include "zip_ui.h"
 
 #include <iostream>
-#include <memory>
 #include <utility>
 
 #include "../sequence_factory.h"
+#include "../UniquePtr.h"
 #include "sequence_ui_utils.h"
-#include "../zip.h"
 
 void ZipInUi(UiState& state)
 {
@@ -24,11 +23,8 @@ void ZipInUi(UiState& state)
     }
 
     ListSequenceFactory<std::pair<int, int>> factory;
-    std::unique_ptr<Sequence<std::pair<int, int>>> result(Zip<int, int>(
-        *state.sequences[first_index],
-        *state.sequences[second_index],
-        factory
-    ));
+    UniquePtr<Sequence<std::pair<int, int>>> result(
+        state.sequences[first_index]->Zip<int>(*state.sequences[second_index], factory));
 
     state.pair_sequences.push_back(result.get());
     std::cout << "Created zipped sequence: ";

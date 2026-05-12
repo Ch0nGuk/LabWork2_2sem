@@ -5,7 +5,6 @@
 #include "ListSequence.h"
 #include "MutableArraySequence.h"
 #include "ImmutableArraySequence.h"
-#include "map.h"
 #include "sequence_factory.h"
 
 int main()
@@ -22,7 +21,7 @@ int main()
     Sequence<int>* mutable_sub = mutable_seq->GetSubsequence(1, 3);
     Sequence<int>* mutable_concat = mutable_seq->Concat(*mutable_sub);
     ListSequenceFactory<int> map_factory;
-    Sequence<int>* mutable_map = Map<int, int>(*mutable_seq, [](int value) { return value * value; }, map_factory);
+    Sequence<int>* mutable_map = mutable_seq->Map<int>([](int value) { return value * value; }, map_factory);
 
     Sequence<int>* immutable_seq = new ImmutableArraySequence<int>(items, 3);
     Sequence<int>* immutable_append = immutable_seq->Append(4);

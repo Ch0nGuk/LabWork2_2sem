@@ -1,8 +1,8 @@
 #include "insert_at_ui.h"
 
 #include <iostream>
-#include <memory>
 
+#include "../UniquePtr.h"
 #include "sequence_ui_utils.h"
 
 void InsertAtInUi(UiState& state)
@@ -31,7 +31,7 @@ void InsertAtInUi(UiState& state)
 
         if (result != state.sequences[index])
         {
-            std::unique_ptr<Sequence<int>> owned_result(result);
+            UniquePtr<Sequence<int>> owned_result(result);
             state.sequences.push_back(owned_result.get());
             std::cout << "Created new sequence: ";
             PrintSequence(owned_result.get());

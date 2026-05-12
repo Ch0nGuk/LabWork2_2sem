@@ -8,13 +8,10 @@
 
 #include "DynamicArray.h"
 #include "LinkedList.h"
-#include "map.h"
 #include "MutableArraySequence.h"
 #include "ImmutableArraySequence.h"
 #include "ListSequence.h"
 #include "sequence_factory.h"
-#include "unzip.h"
-#include "zip.h"
 
 namespace
 {
@@ -114,28 +111,34 @@ namespace
         int items[] = {1, 2, 3};
 
         DynamicArray<int> array(items, 3);
+        DynamicArray<int> default_filled_array(4, 7);
         AssertEqual(array.GetSize(), 3, "DynamicArray GetSize");
         AssertEqual(array.Get(0), 1, "DynamicArray Get first");
         AssertEqual(array.Get(2), 3, "DynamicArray Get last");
+        AssertEqual(default_filled_array.GetSize(), 4, "DynamicArray default-filled size");
+        AssertEqual(default_filled_array.Get(0), 7, "DynamicArray default-filled first");
+        AssertEqual(default_filled_array.Get(3), 7, "DynamicArray default-filled last");
 
         array.Set(1, 5);
         AssertEqual(array.Get(1), 5, "DynamicArray Set");
 
-        array.Resize(5);
+        array.Resize(5, 9);
         AssertEqual(array.GetSize(), 5, "DynamicArray Resize bigger");
         AssertEqual(array.Get(0), 1, "DynamicArray data preserved after grow");
         AssertEqual(array.Get(1), 5, "DynamicArray changed item preserved after grow");
+        AssertEqual(array.Get(3), 9, "DynamicArray new item after grow");
+        AssertEqual(array.Get(4), 9, "DynamicArray last new item after grow");
 
-        array.Resize(2);
+        array.Resize(2, 0);
         AssertEqual(array.GetSize(), 2, "DynamicArray Resize smaller");
         AssertEqual(array.Get(1), 5, "DynamicArray data preserved after shrink");
 
-        AssertThrows([]() { DynamicArray<int> invalid(-1); }, "DynamicArray negative size must throw");
+        AssertThrows([]() { DynamicArray<int> invalid(-1, 0); }, "DynamicArray negative size must throw");
         AssertThrows([]() { DynamicArray<int> invalid(nullptr, 2); }, "DynamicArray null source must throw");
         AssertThrows([&array]() { array.Get(-1); }, "DynamicArray negative index must throw");
         AssertThrows([&array]() { array.Get(10); }, "DynamicArray too large index must throw");
         AssertThrows([&array]() { array.Set(10, 1); }, "DynamicArray Set out of range must throw");
-        AssertThrows([&array]() { array.Resize(-5); }, "DynamicArray negative resize must throw");
+        AssertThrows([&array]() { array.Resize(-5, 0); }, "DynamicArray negative resize must throw");
     }
 
     // Проверяет базовые операции списка, подсписки, Concat и ошибочные случаи.
@@ -208,7 +211,7 @@ namespace
         AssertSequenceContent(concatenated, expected_concat, 9, "MutableArraySequence Concat");
 
         ListSequenceFactory<int> factory;
-        Sequence<int>* mapped = Map<int, int>(*sequence, Square, factory);
+        Sequence<int>* mapped = sequence->Map<int>(Square, factory);
         AssertSequenceContent(mapped, expected_map, 6, "MutableArraySequence Map");
 
         Sequence<int>* filtered = sequence->Where(IsEven);
@@ -261,7 +264,7 @@ namespace
         AssertSequenceContent(inserted, expected_insert, 4, "ImmutableArraySequence InsertAt result");
 
         ListSequenceFactory<int> factory;
-        Sequence<int>* mapped = Map<int, int>(*sequence, Square, factory);
+        Sequence<int>* mapped = sequence->Map<int>(Square, factory);
         Sequence<int>* filtered = sequence->Where(IsEven);
         AssertSequenceContent(mapped, expected_map, 3, "ImmutableArraySequence Map");
         AssertSequenceContent(filtered, expected_where, 1, "ImmutableArraySequence Where");
@@ -306,7 +309,7 @@ namespace
         AssertSequenceContent(subsequence, expected_subsequence, 3, "ListSequence GetSubsequence");
 
         ListSequenceFactory<int> factory;
-        Sequence<int>* mapped = Map<int, int>(*sequence, Square, factory);
+        Sequence<int>* mapped = sequence->Map<int>(Square, factory);
         Sequence<int>* filtered = sequence->Where(IsEven);
         AssertSequenceContent(mapped, expected_map, 6, "ListSequence Map");
         AssertSequenceContent(filtered, expected_where, 3, "ListSequence Where");
@@ -394,27 +397,27 @@ namespace
         ListSequenceFactory<std::pair<int, int>> pair_factory;
         ListSequenceFactory<int> int_factory;
 
-        Sequence<double>* mutable_mapped = Map<int, double>(*mutable_sequence, Half, mutable_double_factory);
-        Sequence<double>* immutable_mapped = Map<int, double>(*immutable_sequence, Half, immutable_double_factory);
-        Sequence<bool>* bool_mapped = Map<int, bool>(*list_sequence, IsPositive, bool_factory);
-        Sequence<double>* empty_mapped = Map<int, double>(*empty_sequence, Half, immutable_double_factory);
+        Sequence<double>* mutable_mapped = mutable_sequence->Map<double>(Half, mutable_double_factory);
+        Sequence<double>* immutable_mapped = immutable_sequence->Map<double>(Half, immutable_double_factory);
+        Sequence<bool>* bool_mapped = list_sequence->Map<bool>(IsPositive, bool_factory);
+        Sequence<double>* empty_mapped = empty_sequence->Map<double>(Half, immutable_double_factory);
 
         AssertTypedSequenceContent(mutable_mapped, expected_half, 4, "Generic Map mutable source to double");
         AssertTypedSequenceContent(immutable_mapped, expected_half, 4, "Generic Map immutable source to double");
         AssertTypedSequenceContent(bool_mapped, expected_positive, 4, "Generic Map list source to bool");
         AssertEqual(empty_mapped->GetLength(), 0, "Generic Map empty sequence");
 
-        Sequence<std::pair<int, int>>* zipped = Zip<int, int>(*mutable_sequence, *other_sequence, pair_factory);
-        Sequence<std::pair<int, int>>* zipped_empty = Zip<int, int>(*empty_sequence, *other_sequence, pair_factory);
+        Sequence<std::pair<int, int>>* zipped = mutable_sequence->Zip<int>(*other_sequence, pair_factory);
+        Sequence<std::pair<int, int>>* zipped_empty = empty_sequence->Zip<int>(*other_sequence, pair_factory);
 
         AssertTypedSequenceContent(zipped, expected_zip, 3, "Zip must pair elements up to shorter sequence");
         AssertEqual(zipped_empty->GetLength(), 0, "Zip with empty sequence must be empty");
 
-        std::pair<Sequence<int>*, Sequence<int>*> unzipped = Unzip<int, int>(*zipped, int_factory, int_factory);
+        std::pair<Sequence<int>*, Sequence<int>*> unzipped = zipped->Unzip<int, int>(int_factory, int_factory);
         AssertSequenceContent(unzipped.first, expected_first_unzip, 3, "Unzip first result");
         AssertSequenceContent(unzipped.second, expected_second_unzip, 3, "Unzip second result");
 
-        std::pair<Sequence<int>*, Sequence<int>*> empty_unzipped = Unzip<int, int>(*zipped_empty, int_factory, int_factory);
+        std::pair<Sequence<int>*, Sequence<int>*> empty_unzipped = zipped_empty->Unzip<int, int>(int_factory, int_factory);
         AssertEqual(empty_unzipped.first->GetLength(), 0, "Unzip first empty result");
         AssertEqual(empty_unzipped.second->GetLength(), 0, "Unzip second empty result");
 

@@ -5,7 +5,7 @@
 #include <stdexcept>
 
 template <typename T>
-class DynamicArray
+class DynamicArray // изучить конструктор перемещения
 {
 private:
     T* data;
@@ -24,7 +24,7 @@ private:
 public:
     DynamicArray() : data(nullptr), size(0) {}
 
-    explicit DynamicArray(int size) : data(nullptr), size(size)
+    DynamicArray(int size, const T& default_item) : data(nullptr), size(size)
     {
         if (size < 0)
         {
@@ -33,7 +33,11 @@ public:
 
         if (size > 0)
         {
-            data = new T[size]();
+            data = new T[size];
+            for (int index = 0; index < size; index++)
+            {
+                data[index] = default_item;
+            }
         }
     }
 
@@ -51,7 +55,7 @@ public:
 
         if (size > 0)
         {
-            data = new T[size]();
+            data = new T[size];
             for (int index = 0; index < size; index++)
             {
                 data[index] = items[index];
@@ -63,7 +67,7 @@ public:
     {
         if (size > 0)
         {
-            data = new T[size]();
+            data = new T[size];
             for (int index = 0; index < size; index++)
             {
                 data[index] = other.data[index];
@@ -107,7 +111,7 @@ public:
         return *this;
     }
 
-    DynamicArray<T>& Resize(int new_size)
+    DynamicArray<T>& Resize(int new_size, const T& default_item)
     {
         if (new_size < 0)
         {
@@ -119,12 +123,17 @@ public:
             return *this;
         }
 
-        T* new_data = (new_size > 0) ? new T[new_size]() : nullptr;
+        T* new_data = (new_size > 0) ? new T[new_size] : nullptr;
         int elements_to_copy = std::min(size, new_size);
 
         for (int index = 0; index < elements_to_copy; index++)
         {
             new_data[index] = data[index];
+        }
+
+        for (int index = elements_to_copy; index < new_size; index++)
+        {
+            new_data[index] = default_item;
         }
 
         delete[] data;

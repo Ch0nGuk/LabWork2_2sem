@@ -1,8 +1,8 @@
 #include "concat_ui.h"
 
 #include <iostream>
-#include <memory>
 
+#include "../UniquePtr.h"
 #include "sequence_ui_utils.h"
 
 void ConcatInUi(UiState& state)
@@ -22,7 +22,7 @@ void ConcatInUi(UiState& state)
 
     try
     {
-        std::unique_ptr<Sequence<int>> result(
+        UniquePtr<Sequence<int>> result(
             state.sequences[first_index]->Concat(*state.sequences[second_index])
         );
         state.sequences.push_back(result.get());
